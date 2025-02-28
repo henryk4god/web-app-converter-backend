@@ -1,18 +1,24 @@
 {
     "version": 2,
     "builds": [
-        {
-            "src": "api/index.py",
-            "use": "@vercel/python",
-            "config": {
-                "runtimeVersion": "3.9"
-            }
+      {
+        "src": "api/index.py",
+        "use": "@vercel/python",
+        "config": {
+          "runtimeVersion": "3.9"
         }
+      }
     ],
     "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "api/index.py"
-        }
-    ]
-}
+      {
+        "src": "/(.*)",
+        "dest": "api/index.py"
+      }
+    ],
+    "functions": {
+      "api/*.py": {
+        "includeFiles": ["apk_generator.py"]
+      }
+    }
+  }
+  
