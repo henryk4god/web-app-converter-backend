@@ -5,7 +5,13 @@
         "src": "api/index.py",
         "use": "@vercel/python",
         "config": {
-          "runtimeVersion": "3.9"
+          "runtime": "python3.9",
+          "maxLambdaSize": "50mb",
+          "includeFiles": [
+            "api/apk_generator.py",
+            "api/payment.py",
+            ".env"
+          ]
         }
       }
     ],
@@ -14,11 +20,5 @@
         "src": "/(.*)",
         "dest": "api/index.py"
       }
-    ],
-    "functions": {
-      "api/*.py": {
-        "includeFiles": ["apk_generator.py"]
-      }
-    }
+    ]
   }
-  
