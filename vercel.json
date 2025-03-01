@@ -1,24 +1,23 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "api/index.py",
-        "use": "@vercel/python",
-        "config": {
-          "runtime": "python3.9",
-          "maxLambdaSize": "50mb",
-          "includeFiles": [
-            "api/apk_generator.py",
-            "api/payment.py",
-            ".env"
-          ]
-        }
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.9",
+        "includeFiles": [
+          "api/apk_generator.py",
+          "api/payment.py",
+          "api/auth.py"
+        ]
       }
-    ],
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "api/index.py"
-      }
-    ]
-  }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.py"
+    }
+  ]
+}
