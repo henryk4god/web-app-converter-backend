@@ -8,7 +8,9 @@
         "runtime": "python3.9",
         "includeFiles": [
           "api/apk_generator.py",
-          "api/payment.py"
+          "api/auth.py",
+          "api/payment.py",
+          "api/middleware/*"  // Include middleware if needed
         ]
       }
     }
