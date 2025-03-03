@@ -19,6 +19,8 @@ def generate_apk(website_url):
         Exception: If APK generation fails.
     """
     output_apk = "web_app_converter.apk"
+    
+    # Example command: Replace this with the actual command to generate the APK
     command = f"apktool b input-folder -o {output_apk}"
     
     try:
@@ -62,6 +64,8 @@ def sign_apk(apk_path):
         raise Exception(error_msg)
 
     signed_apk = "signed_app.aab"
+    
+    # Example command: Replace this with the actual command to sign the APK
     command = (
         f"jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 "
         f"-keystore {keystore} -storepass {keystore_pass} "
