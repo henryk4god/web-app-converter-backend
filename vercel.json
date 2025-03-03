@@ -5,19 +5,19 @@
       "src": "api/index.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.9",
+        "runtime": "python3.12",
         "includeFiles": [
           "api/apk_generator.py",
           "api/auth.py",
           "api/payment.py",
-          "api/middleware/*"  // Include middleware if needed
+          "api/middleware/*"
         ]
       }
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/api/(.*)",
       "dest": "api/index.py"
     }
   ]

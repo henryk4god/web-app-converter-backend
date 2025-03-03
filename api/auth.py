@@ -1,21 +1,27 @@
-from fastapi import FastAPI, Depends
-from auth import create_jwt_token, verify_jwt_token
+import jwt
+import os
+from datetime import datetime, timedelta
+from fastapi import HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
 
-app = FastAPI()
+# Load environment variables
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "fallback_secret_key")
+ALGORITHM = "HS256"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-@app.post("/login")
-def login():
-    """
-    User login endpoint (mock authentication).
-    Returns a JWT token.
-    """
-    user_data = {"user_id": 123, "username": "test_user"}
-    token = create_jwt_token(user_data)
-    return {"access_token": token}
+def create_jwt_token(data: dict, expires_delta: timedelta = timedelta(days=1)):
+    """Generate JWT token."""
+    to_encode = data.copy()
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-@app.get("/protected")
-def protected_route(user_data: dict = Depends(verify_jwt_token)):
-    """
-    A protected endpoint that requires JWT authentication.
-    """
-    return {"message": "Welcome to the protected route!", "user": user_data}
+def verify_jwt_token(token: str = Depends(oauth2_scheme)):
+    """Verify JWT token."""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
