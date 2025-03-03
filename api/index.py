@@ -3,13 +3,35 @@ from flask_cors import CORS
 import os
 import jwt
 from dotenv import load_dotenv
+import sys
+
+# Debugging: Print Python path, current directory, and files
+print("Python Path:")
+print(sys.path)
+
+print("Current Directory:")
+print(os.getcwd())
+
+print("Files in Current Directory:")
+print(os.listdir())
 
 # Load environment variables
 load_dotenv()
 
 # Import custom modules
-from apk_generator import generate_apk
-from payment import verify_payment
+try:
+    from apk_generator import generate_apk
+    print("apk_generator imported successfully!")
+except ImportError as e:
+    print(f"Error importing apk_generator: {e}")
+    raise e  # Re-raise the error to stop execution
+
+try:
+    from payment import verify_payment
+    print("payment imported successfully!")
+except ImportError as e:
+    print(f"Error importing payment: {e}")
+    raise e  # Re-raise the error to stop execution
 
 # Initialize Flask app
 app = Flask(__name__)
