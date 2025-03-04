@@ -5,7 +5,13 @@ from pydantic import BaseModel
 import logging
 
 # Setup logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.DEBUG,  # Set to DEBUG to capture detailed logs
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
 
 # Import custom modules with error handling
 try:
@@ -51,4 +57,4 @@ def convert(data: ConvertRequest):
         return {"message": "APK generated successfully", "path": apk_path}
     except Exception as e:
         logging.error(f"❌ Error generating APK: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate APK")
+        raise HTTPException(status_code=500, detail=f"Failed to generate APK: {e}")
