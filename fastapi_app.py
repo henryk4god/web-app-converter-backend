@@ -1,24 +1,16 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles  # ✅ Added for serving static files
 import os
 import jwt
-import sys
 import logging
 from dotenv import load_dotenv
-from vercel_python import handler  # ✅ Fix for Vercel
-
-# Get project root directory
-project_root = os.path.dirname(os.path.abspath(__file__))
-
-# Add project and 'api' folder to sys.path
-sys.path.append(project_root)
-sys.path.append(os.path.join(project_root, "api"))
-
-# Setup logging
-logging.basicConfig(level=logging.INFO)
 
 # Load environment variables
 load_dotenv()
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 
 # Import custom modules with error handling
 try:
@@ -35,59 +27,62 @@ except ImportError as e:
     logging.error(f"❌ Error importing payment: {e}")
     raise
 
-# Initialize Flask app
-app = Flask(__name__)
-CORS(app)
-
 # Ensure JWT_SECRET_KEY is set
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("❌ JWT_SECRET_KEY is not set. Check your .env file.")
 
-@app.route("/")
+# Initialize FastAPI app
+app = FastAPI()
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change this to specific domains in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ✅ Serve static files (like favicon.png)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
 def home():
     """Test route to check if the server is running."""
-    return jsonify({"message": "✅ Server is running on Vercel!"})
+    return {"message": "✅ Server is running on Vercel!"}
 
-@app.route('/convert', methods=['POST'])
-def convert():
+@app.post("/convert")
+def convert(data: dict):
     """Convert a website URL to an APK."""
-    data = request.json
     website_url = data.get('url')
 
     if not website_url:
-        return jsonify({"error": "Missing website URL"}), 400
+        raise HTTPException(status_code=400, detail="Missing website URL")
 
     try:
         apk_path = generate_apk(website_url)
-        return jsonify({"message": "APK generated successfully", "path": apk_path}), 200
+        return {"message": "APK generated successfully", "path": apk_path}
     except Exception as e:
         logging.error(f"❌ Error generating APK: {e}")
-        return jsonify({"error": "Failed to generate APK"}), 500
+        raise HTTPException(status_code=500, detail="Failed to generate APK")
 
-@app.route('/verify-payment', methods=['POST'])
-def payment():
+@app.post("/verify-payment")
+def payment(data: dict):
     """Verify a payment reference."""
-    data = request.json
     payment_reference = data.get('reference')
 
     if not payment_reference:
-        return jsonify({"error": "Missing payment reference"}), 400
+        raise HTTPException(status_code=400, detail="Missing payment reference")
 
     try:
         verified = verify_payment(payment_reference)
 
         if verified:
             token = jwt.encode({"premium": True}, SECRET_KEY, algorithm="HS256")
-            return jsonify({"message": "Payment verified", "token": token}), 200
+            return {"message": "Payment verified", "token": token}
         else:
-            return jsonify({"error": "Payment verification failed"}), 400
+            raise HTTPException(status_code=400, detail="Payment verification failed")
     except Exception as e:
         logging.error(f"❌ Error verifying payment: {e}")
-        return jsonify({"error": "Failed to verify payment"}), 500
-
-# Vercel handler (for deployment)
-handler = handler(app)
-
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8000, debug=True)
+        raise HTTPException(status_code=500, detail="Failed to verify payment")
