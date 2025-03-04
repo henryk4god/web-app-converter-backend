@@ -5,6 +5,7 @@ import jwt
 import sys
 import logging
 from dotenv import load_dotenv
+from vercel_python import handler  # ✅ Fix for Vercel
 
 # Get project root directory
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -21,14 +22,14 @@ load_dotenv()
 
 # Import custom modules with error handling
 try:
-    from apk_generator import generate_apk
+    from api.apk_generator import generate_apk
     logging.info("✅ apk_generator imported successfully!")
 except ImportError as e:
     logging.error(f"❌ Error importing apk_generator: {e}")
     raise
 
 try:
-    from payment import verify_payment
+    from api.payment import verify_payment
     logging.info("✅ payment imported successfully!")
 except ImportError as e:
     logging.error(f"❌ Error importing payment: {e}")
@@ -42,6 +43,11 @@ CORS(app)
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("❌ JWT_SECRET_KEY is not set. Check your .env file.")
+
+@app.route("/")
+def home():
+    """Test route to check if the server is running."""
+    return jsonify({"message": "✅ Server is running on Vercel!"})
 
 @app.route('/convert', methods=['POST'])
 def convert():
@@ -80,10 +86,8 @@ def payment():
         logging.error(f"❌ Error verifying payment: {e}")
         return jsonify({"error": "Failed to verify payment"}), 500
 
-# Vercel handler
-def handler(event, context):
-    from vercel_lambda.wsgi import Response
-    return Response(app, event, context)
+# Vercel handler (for deployment)
+handler = handler(app)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000, debug=True)
