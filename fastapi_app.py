@@ -1,25 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles  # ✅ For serving static files
 from pydantic import BaseModel
 import logging
+from api.apk_generator import generate_apk
 
 # Setup logging
-logging.basicConfig(
-    level=logging.DEBUG,  # Set to DEBUG to capture detailed logs
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler()
-    ]
-)
-
-# Import custom modules with error handling
-try:
-    from api.apk_generator import generate_apk
-    logging.info("✅ apk_generator imported successfully!")
-except ImportError as e:
-    logging.error(f"❌ Error importing apk_generator: {e}")
-    raise
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -32,9 +18,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# ✅ Serve static files (like favicon.png)
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def home():
@@ -52,8 +35,11 @@ def convert(data: ConvertRequest):
     if not website_url:
         raise HTTPException(status_code=400, detail="Missing website URL")
 
+    logging.debug(f"Received URL: {website_url}")
+
     try:
         apk_path = generate_apk(website_url, signed=False)  # Generate an unsigned APK
+        logging.debug(f"APK generated at path: {apk_path}")
         return {"message": "APK generated successfully", "path": apk_path}
     except Exception as e:
         logging.error(f"❌ Error generating APK: {e}")
