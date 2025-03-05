@@ -21,7 +21,44 @@ def generate_apk(website_url, signed=False):
     """
     output_apk = "web_app_converter.apk"
     
-    # Example command: Replace this with the actual command to generate the APK
+    # Ensure the necessary directories and files exist
+    main_activity_dir = os.path.join("input-folder", "src", "com", "example", "app")
+    main_activity_path = os.path.join(main_activity_dir, "MainActivity.java")
+    
+    if not os.path.exists(main_activity_dir):
+        os.makedirs(main_activity_dir)
+    
+    if not os.path.exists(main_activity_path):
+        with open(main_activity_path, "w") as file:
+            file.write("""
+            package com.example.app;
+
+            import android.os.Bundle;
+            import android.webkit.WebView;
+            import androidx.appcompat.app.AppCompatActivity;
+
+            public class MainActivity extends AppCompatActivity {
+                @Override
+                protected void onCreate(Bundle savedInstanceState) {
+                    super.onCreate(savedInstanceState);
+                    setContentView(R.layout.activity_main);
+
+                    WebView webView = findViewById(R.id.webview);
+                    webView.loadUrl("http://example.com");  // Replace with the actual URL
+                }
+            }
+            """)
+    
+    # Update the MainActivity.java file with the provided URL
+    with open(main_activity_path, "r") as file:
+        content = file.read()
+    
+    content = content.replace("http://example.com", website_url)
+    
+    with open(main_activity_path, "w") as file:
+        file.write(content)
+    
+    # Command to build the APK
     command = f"apktool b input-folder -o {output_apk}"
     
     try:
