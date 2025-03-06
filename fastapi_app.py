@@ -1,8 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import requests
+import json
 import logging
-from api.apk_generator import generate_apk
+import os
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -38,9 +40,34 @@ def convert(data: ConvertRequest):
     logging.debug(f"Received URL: {website_url}")
 
     try:
-        apk_path = generate_apk(website_url, signed=False)  # Generate an unsigned APK
-        logging.debug(f"APK generated at path: {apk_path}")
-        return {"message": "APK generated successfully", "path": apk_path}
+        sha = trigger_github_action(website_url)
+        return {"message": "APK generation triggered successfully. Please check back later for the download link.", "sha": sha}
     except Exception as e:
-        logging.error(f"❌ Error generating APK: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate APK: {e}")
+        logging.error(f"❌ Error triggering APK generation: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to trigger APK generation: {e}")
+
+def trigger_github_action(website_url):
+    url = "https://api.github.com/repos/your-username/your-repo/dispatches"
+    headers = {
+        "Accept": "application/vnd.github.v3+json",
+        "Authorization": "token YOUR_GITHUB_TOKEN"
+    }
+    data = {
+        "event_type": "build-apk",
+        "client_payload": {
+            "website_url": website_url
+        }
+    }
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    if response.status_code != 204:
+        raise Exception(f"Failed to trigger workflow: {response.status_code}")
+    return response.headers.get('X-GitHub-Delivery')
+
+@app.get("/status/{sha}")
+def check_status(sha: str):
+    """Check the status of the APK generation."""
+    apk_path = f"/path/to/generated/apks/web_app_converter_{sha}.apk"
+    if os.path.exists(apk_path):
+        return {"status": "completed", "path": apk_path}
+    else:
+        return {"status": "pending"}

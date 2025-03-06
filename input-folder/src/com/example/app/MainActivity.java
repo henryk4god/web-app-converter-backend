@@ -11,6 +11,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         WebView webView = findViewById(R.id.webview);
-        webView.loadUrl("https://web-app-converter-backend-hjebqru7a.vercel.app"); // Replace with the actual URL
+        webView.loadUrl("https://web-app-converter-backend-f387dwss7.vercel.app"); // Replace with the actual URL
     }
 }
