@@ -22,6 +22,7 @@ def generate_apk(website_url, signed=False):
         Exception: If APK generation fails.
     """
     output_apk = "web_app_converter.apk"
+    apktool_path = os.path.join("tools", "apktool.jar")
     
     # Create a temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -67,7 +68,7 @@ def generate_apk(website_url, signed=False):
             file.write(content)
         
         # Command to build the APK
-        command = f"apktool b {input_folder} -o {output_apk}"
+        command = f"java -jar {apktool_path} b {input_folder} -o {output_apk}"
         
         try:
             # Log the command being executed

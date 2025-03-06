@@ -11,6 +11,5 @@
       "src": "/(.*)",
       "dest": "fastapi_app.py"
     }
-  ],
-  "public": true
+  ]
 }
